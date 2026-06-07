@@ -234,4 +234,4 @@ Atau hapus manual: `backend/data.db`
 
 MIT License — bebas dipakai, diubah, dan didistribusikan.
 
-Dibuat dengan ❤️ oleh [@dani](https://github.com/dani)
+Dibuat dengan ❤️ oleh [@dani](https://github.com/daniadz88)
