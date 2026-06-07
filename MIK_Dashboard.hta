@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <title>MIK Dashboard</title>
+    <HTA:APPLICATION 
+        ID="MIKDashboard"
+        APPLICATIONNAME="MIK Dashboard"
+        BORDER="thin"
+        BORDERSTYLE="complex"
+        CAPTION="yes"
+        MAXIMIZEBUTTON="no"
+        MINIMIZEBUTTON="yes"
+        SHOWINTASKBAR="yes"
+        SINGLEINSTANCE="yes"
+        SYSMENU="yes"
+        WINDOWSTATE="normal"
+        INNERBORDER="no"
+        SCROLL="no"
+        SCROLLFLAT="yes"
+        CONTEXTMENU="no"
+    >
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b0f19; color: #e2e8f0; overflow: hidden; font-size: 13px; }
+        .window { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+        .title-bar { height: 36px; background: #111827; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid #1f2937; }
+        .title-left { display: flex; align-items: center; gap: 8px; }
+        .logo-box { width: 20px; height: 20px; background: #3b82f6; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; }
+        .title-text { font-size: 12px; font-weight: 600; color: #f9fafb; letter-spacing: 0.3px; }
+        .title-version { font-size: 9px; color: #6b7280; background: #1f2937; padding: 1px 6px; border-radius: 10px; margin-left: 4px; }
+        .win-controls { display: flex; gap: 2px; }
+        .win-btn { width: 26px; height: 26px; border: none; background: transparent; color: #9ca3af; cursor: pointer; border-radius: 4px; font-size: 11px; font-family: 'Segoe UI', sans-serif; }
+        .win-btn:hover { background: rgba(255,255,255,0.08); color: #f3f4f6; }
+        .win-close:hover { background: #dc2626; color: white; }
+        .content { flex: 1; overflow-y: auto; padding: 16px; background: #0b0f19; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .card-header { margin-bottom: 12px; overflow: hidden; }
+        .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #6b7280; float: left; }
+        .card-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; float: right; }
+        .badge-green { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .badge-red { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-gray { background: rgba(107,114,128,0.15); color: #9ca3af; }
+        .clear { clear: both; height: 0; overflow: hidden; }
+        .hero-card { background: #111827; border: 1px solid #1e3a5f; border-radius: 12px; padding: 20px; margin-bottom: 12px; }
+        .hero-card h1 { font-size: 20px; font-weight: 700; color: #f9fafb; margin-bottom: 3px; }
+        .hero-card p { font-size: 12px; color: #6b7280; }
+        .status-table { width: 100%; border-collapse: separate; border-spacing: 12px 0; margin-bottom: 12px; margin-left: -12px; margin-right: -12px; }
+        .status-table td { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px; text-align: center; width: 50%; }
+        .status-table .label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+        .status-table .value { font-size: 14px; font-weight: 700; color: #e5e7eb; }
+        .status-table .value.online { color: #22c55e; }
+        .status-table .value.offline { color: #ef4444; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
+        .dot-online { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+        .dot-offline { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+        .url-box { display: inline-block; background: #0b0f19; border: 1px solid #374151; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-family: 'Consolas', monospace; color: #3b82f6; }
+        .btn-table { width: 100%; border-collapse: separate; border-spacing: 8px; margin: -8px; }
+        .btn-table td { width: 50%; padding: 0; }
+        .btn { display: block; width: 100%; padding: 12px 10px; border: none; border-radius: 10px; font-weight: 600; font-size: 12px; cursor: pointer; font-family: 'Segoe UI', sans-serif; letter-spacing: 0.2px; text-align: center; white-space: nowrap; }
+        .btn:hover { filter: brightness(1.15); }
+        .btn:active { filter: brightness(0.95); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+        .btn-primary { background: #16a34a; color: white; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-secondary { background: #2563eb; color: white; }
+        .btn-neutral { background: #374151; color: #d1d5db; border: 1px solid #4b5563; }
+        .btn-utility { background: #1f2937; color: #9ca3af; border: 1px solid #374151; font-size: 11px; padding: 10px 8px; }
+        .btn-utility:hover { background: #374151; color: #e5e7eb; }
+        .diag-table { width: 100%; border-collapse: separate; border-spacing: 6px; margin: -6px; }
+        .diag-table td { width: 33.33%; padding: 0; }
+        .diag-btn { display: block; width: 100%; padding: 10px 4px; background: #1f2937; border: 1px solid #374151; border-radius: 8px; color: #9ca3af; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Segoe UI', sans-serif; text-align: center; white-space: nowrap; }
+        .diag-btn:hover { background: #374151; color: #e5e7eb; border-color: #4b5563; }
+        .console-wrap { background: #030712; border: 1px solid #1f2937; border-radius: 10px; overflow: hidden; }
+        .console-header { padding: 8px 12px; background: #111827; border-bottom: 1px solid #1f2937; overflow: hidden; }
+        .console-title { font-size: 10px; font-weight: 700; color: #6b7280; letter-spacing: 1px; text-transform: uppercase; float: left; }
+        .console-clear { background: #1f2937; border: 1px solid #374151; padding: 3px 8px; border-radius: 5px; color: #9ca3af; font-size: 10px; cursor: pointer; font-family: 'Segoe UI', sans-serif; float: right; }
+        .console-clear:hover { background: #374151; color: #e5e7eb; }
+        .console { height: 220px; overflow-y: auto; padding: 10px 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; line-height: 1.7; color: #9ca3af; }
+        .console-line { padding: 2px 0; border-left: 2px solid transparent; padding-left: 8px; margin-bottom: 1px; }
+        .console-line-info { border-left-color: #3b82f6; color: #60a5fa; }
+        .console-line-error { border-left-color: #ef4444; color: #f87171; }
+        .console-line-success { border-left-color: #22c55e; color: #4ade80; }
+        .console-line-warn { border-left-color: #f59e0b; color: #fbbf24; }
+        .footer { text-align: center; padding: 10px; font-size: 10px; color: #374151; margin-top: 4px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        .text-center { text-align: center; }
+        .mb-2 { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="title-bar">
+            <div class="title-left">
+                <div class="logo-box">M</div>
+                <div class="title-text">MIK Dashboard</div>
+                <div class="title-version">v2.0</div>
+            </div>
+            <div class="win-controls">
+                <button class="win-btn" onclick="minimizeWindow()">_</button>
+                <button class="win-btn win-close" onclick="closeWindow()">x</button>
+            </div>
+        </div>
+        
+        <div class="content" id="content">
+            <div class="hero-card">
+                <h1>Hotspot Manager</h1>
+                <p>Kelola MikroTik Hotspot dengan mudah</p>
+            </div>
+            
+            <table class="status-table">
+                <tr>
+                    <td>
+                        <div class="label">Status Server</div>
+                        <div class="value offline" id="statusLabel">
+                            <span class="status-dot dot-offline" id="statusDot"></span>MATI
+                        </div>
+                    </td>
+                    <td>
+                        <div class="label">Kondisi</div>
+                        <div class="value offline" id="statusBig">BERHENTI</div>
+                    </td>
+                </tr>
+            </table>
+            
+            <div class="text-center mb-2">
+                <div class="url-box">http://localhost:3001</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">:: Kontrol Server</span>
+                    <span class="card-badge badge-gray" id="statusBadge">OFFLINE</span>
+                    <div class="clear"></div>
+                </div>
+                <table class="btn-table">
+                    <tr>
+                        <td><button class="btn btn-primary" id="btnStart">[>] MULAI SERVER</button></td>
+                        <td><button class="btn btn-danger" id="btnStop" disabled>[#] HENTIKAN</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="btn btn-secondary" id="btnBrowser">[@] BUKA BROWSER</button></td>
+                        <td><button class="btn btn-neutral" id="btnInfo">[i] INFO</button></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">:: Alat Diagnosis</span>
+                    <div class="clear"></div>
+                </div>
+                <table class="diag-table">
+                    <tr>
+                        <td><button class="diag-btn" id="btnCheckNode">[1] Cek Node</button></td>
+                        <td><button class="diag-btn" id="btnCheckPort">[2] Cek Port</button></td>
+                        <td><button class="diag-btn" id="btnCheckBackend">[3] Cek Backend</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="diag-btn" id="btnManualStart">[4] Manual Start</button></td>
+                        <td><button class="diag-btn" id="btnKillNode">[5] Kill Node</button></td>
+                        <td><button class="diag-btn" id="btnRefresh">[6] Refresh</button></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Tools Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">:: Alat Tambahan</span>
+                    <div class="clear"></div>
+                </div>
+                <table class="btn-table">
+                    <tr>
+                        <td><button class="btn btn-utility" id="btnClearCache">[C] Bersihkan Kuki</button></td>
+                        <td><button class="btn btn-utility" id="btnClearLog">[L] Bersihkan Log</button></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div class="console-wrap">
+                    <div class="console-header">
+                        <span class="console-title">:: Output Konsol</span>
+                        <button class="console-clear" id="btnClear">Bersihkan</button>
+                        <div class="clear"></div>
+                    </div>
+                    <div class="console" id="console">
+                        <div class="console-line">[Sistem] MIK Dashboard v2.0 siap</div>
+                        <div class="console-line">[Sistem] Klik MULAI SERVER untuk memulai</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">MIK Dashboard v2.0 | Manajer Hotspot MikroTik</div>
+        </div>
+    </div>
+
+<script>
+    // ========== IE HELPERS ==========
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+    function getTime() {
+        var d = new Date();
+        return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+    }
+
+    // ========== FIX PATH ==========
+    var rawPath = location.pathname.replace(/%20/g, ' ');
+    if (rawPath.charAt(0) === '/' || rawPath.charAt(0) === '\\') {
+        rawPath = rawPath.substring(1);
+    }
+    
+    var fso = new ActiveXObject('Scripting.FileSystemObject');
+    var shell = new ActiveXObject('WScript.Shell');
+    var currentDir = fso.GetParentFolderName(rawPath);
+    var logFile = currentDir + '\\server-output.log';
+
+    // ========== STATE ==========
+    var isRunning = false;
+    var serverStartedByUser = false;  // <-- FLAG BARU: cuma true kalau user klik START
+    var failCount = 0;
+    var statusInterval = null;
+    var consoleDiv = document.getElementById('console');
+    var btnStart = document.getElementById('btnStart');
+    var btnStop = document.getElementById('btnStop');
+    var btnClear = document.getElementById('btnClear');
+    var btnBrowser = document.getElementById('btnBrowser');
+    var btnInfo = document.getElementById('btnInfo');
+    var statusDot = document.getElementById('statusDot');
+    var statusLabel = document.getElementById('statusLabel');
+    var statusBig = document.getElementById('statusBig');
+    var statusBadge = document.getElementById('statusBadge');
+
+    // ========== LOG FUNCTIONS ==========
+    function addLog(msg, type) {
+        var div = document.createElement('div');
+        div.className = 'console-line ' + (type || '');
+        div.innerHTML = '[' + getTime() + '] ' + msg;
+        consoleDiv.appendChild(div);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+    function log(msg) { addLog(msg, ''); }
+    function logInfo(msg) { addLog(msg, 'info'); }
+    function logError(msg) { addLog(msg, 'error'); }
+    function logSuccess(msg) { addLog(msg, 'success'); }
+    function logWarn(msg) { addLog(msg, 'warn'); }
+    function clearLog() { consoleDiv.innerHTML = ''; log('Konsol dibersihkan'); }
+
+    // ========== UI UPDATES ==========
+    function updateUI(running) {
+        isRunning = running;
+        if (running) {
+            statusDot.className = 'status-dot dot-online';
+            statusLabel.innerHTML = '<span class="status-dot dot-online"></span>AKTIF';
+            statusLabel.className = 'value online';
+            statusBig.innerHTML = 'BERJALAN';
+            statusBig.className = 'value online';
+            statusBadge.innerHTML = 'ONLINE';
+            statusBadge.className = 'card-badge badge-green';
+            btnStart.disabled = true;
+            btnStart.innerHTML = '[OK] BERJALAN';
+            btnStop.disabled = false;
+            btnStop.innerHTML = '[#] HENTIKAN';
+        } else {
+            statusDot.className = 'status-dot dot-offline';
+            statusLabel.innerHTML = '<span class="status-dot dot-offline"></span>MATI';
+            statusLabel.className = 'value offline';
+            statusBig.innerHTML = 'BERHENTI';
+            statusBig.className = 'value offline';
+            statusBadge.innerHTML = 'OFFLINE';
+            statusBadge.className = 'card-badge badge-red';
+            btnStart.disabled = false;
+            btnStart.innerHTML = '[>] MULAI SERVER';
+            btnStop.disabled = true;
+            btnStop.innerHTML = '[#] HENTIKAN';
+        }
+    }
+
+    // ========== GET PID FROM PORT ==========
+    function getPidFromPort(port) {
+        try {
+            var tempFile = currentDir + '\\port-pid.tmp';
+            shell.Run('cmd /c netstat -ano | findstr :' + port + ' > "' + tempFile + '" 2>&1', 0, true);
+            if (fso.FileExists(tempFile)) {
+                var ts = fso.OpenTextFile(tempFile, 1);
+                var output = ts.ReadAll();
+                ts.Close();
+                fso.DeleteFile(tempFile);
+                var lines = output.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (line.indexOf('LISTENING') > -1 || line.indexOf('ESTABLISHED') > -1) {
+                        var parts = line.split(/\s+/);
+                        var pid = parts[parts.length - 1];
+                        if (pid && !isNaN(parseInt(pid))) return parseInt(pid);
+                    }
+                }
+            }
+        } catch(e) {}
+        return null;
+    }
+
+    // ========== CHECK NODE RUNNING ==========
+    function isNodeRunning() {
+        try {
+            var tempFile = currentDir + '\\node-check.tmp';
+            shell.Run('cmd /c tasklist /fi "imagename eq node.exe" /fo csv /nh > "' + tempFile + '" 2>&1', 0, true);
+            if (fso.FileExists(tempFile)) {
+                var ts = fso.OpenTextFile(tempFile, 1);
+                var output = ts.ReadAll();
+                ts.Close();
+                fso.DeleteFile(tempFile);
+                return output.toLowerCase().indexOf('node.exe') > -1;
+            }
+        } catch(e) {}
+        return false;
+    }
+
+    // ========== STATUS CHECK ==========
+    function checkStatus() {
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'http://localhost:3001/api/health', true);
+            xhr.timeout = 2000;
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        failCount = 0;
+                        // HANYA UPDATE UI KE AKTIF KALAU USER SUDAH KLIK START
+                        if (serverStartedByUser && !isRunning) {
+                            logSuccess('Server terdeteksi AKTIF');
+                            updateUI(true);
+                        }
+                    } else {
+                        failCount++;
+                        if (failCount >= 2) {
+                            if (isRunning) logError('Server terdeteksi MATI');
+                            updateUI(false);
+                            failCount = 0;
+                        }
+                    }
+                }
+            };
+            xhr.onerror = function() { 
+                failCount++;
+                if (failCount >= 2) {
+                    if (isRunning) logError('Server timeout - dianggap MATI');
+                    updateUI(false);
+                    failCount = 0;
+                }
+            };
+            xhr.ontimeout = function() { 
+                failCount++;
+                if (failCount >= 2) {
+                    if (isRunning) logError('Server timeout - dianggap MATI');
+                    updateUI(false);
+                    failCount = 0;
+                }
+            };
+            xhr.send();
+        } catch(e) { 
+            failCount++;
+            if (failCount >= 2) {
+                updateUI(false);
+                failCount = 0;
+            }
+        }
+    }
+
+    // ========== DIAGNOSTICS ==========
+    function checkNode() {
+        log('Memeriksa Node.js...');
+        try {
+            var tempFile = currentDir + '\\node-check.tmp';
+            shell.Run('cmd /c node --version > "' + tempFile + '" 2>&1', 0, true);
+            if (fso.FileExists(tempFile)) {
+                var ts = fso.OpenTextFile(tempFile, 1);
+                var output = ts.ReadAll();
+                ts.Close();
+                fso.DeleteFile(tempFile);
+                if (output.indexOf('v') === 0) logSuccess('Node.js: ' + output.replace(/^\s+|\s+$/g, ''));
+                else logError('Node.js TIDAK ditemukan!');
+            }
+        } catch(e) { logError('Cek Node.js gagal: ' + e.message); }
+    }
+    function checkPort() {
+        log('Memeriksa port 3001...');
+        var pid = getPidFromPort(3001);
+        if (pid) logWarn('Port 3001 digunakan PID: ' + pid);
+        else logSuccess('Port 3001 BEBAS');
+    }
+    function checkBackend() {
+        var backendDir = currentDir + '\\backend';
+        log('Memeriksa backend...');
+        if (fso.FolderExists(backendDir)) {
+            logSuccess('Folder backend: ADA');
+            if (fso.FileExists(backendDir + '\\server.js')) logSuccess('server.js: ADA');
+            else logError('server.js: TIDAK DITEMUKAN');
+            if (fso.FolderExists(backendDir + '\\node_modules')) logSuccess('node_modules: ADA');
+            else logWarn('node_modules: HILANG');
+        } else logError('Folder backend: TIDAK DITEMUKAN');
+    }
+    function manualStart() {
+        var backendDir = currentDir + '\\backend';
+        log('Membuka CMD manual...');
+        shell.Run('cmd /k cd /d "' + backendDir + '" && node server.js', 1, false);
+    }
+
+    // ========== KILL NODE (DIAGNOSTIC) ==========
+    function killNode() {
+        log('Kill Node diagnostic...');
+        var pid = getPidFromPort(3001);
+        if (pid) {
+            log('Kill PID dari port: ' + pid);
+            try { shell.Run('taskkill /f /pid ' + pid, 0, true); logSuccess('Kill PID OK'); } 
+            catch(e) { logError('Kill PID gagal'); }
+        }
+        try { shell.Run('taskkill /f /im node.exe', 0, true); } catch(e) {}
+        try { shell.Run('wmic process where "name=\'node.exe\'" delete', 0, true); } catch(e) {}
+        
+        setTimeout(function() { 
+            if (!isNodeRunning()) {
+                isRunning = false;
+                serverStartedByUser = false;  // <-- RESET FLAG
+                updateUI(false);
+                logSuccess('Node dimatikan');
+            } else logError('Node MASIH berjalan');
+        }, 2000);
+    }
+
+    // ========== START SERVER ==========
+    function startServer() {
+        if (isRunning) { log('Server sudah berjalan'); return; }
+        
+        // Cek apakah port sudah digunakan
+        var existingPid = getPidFromPort(3001);
+        if (existingPid) {
+            logWarn('Port 3001 digunakan PID ' + existingPid + ' - mencoba matikan...');
+            try { shell.Run('taskkill /f /pid ' + existingPid, 0, true); }
+            catch(e) { logError('Gagal matikan PID'); }
+            var waitCount = 0;
+            var waitInterval = setInterval(function() {
+                waitCount++;
+                if (!getPidFromPort(3001) || waitCount > 5) {
+                    clearInterval(waitInterval);
+                    _doStartServer();
+                }
+            }, 1000);
+            return;
+        }
+        
+        _doStartServer();
+    }
+
+    function _doStartServer() {
+        log('Memulai Server...');
+        btnStart.disabled = true;
+        btnStart.innerHTML = '[*] MEMULAI...';
+        
+        var backendDir = currentDir + '\\backend';
+        var frontendDir = currentDir + '\\frontend';
+        
+        if (!fso.FolderExists(backendDir)) {
+            logError('Folder backend TIDAK DITEMUKAN');
+            btnStart.disabled = false;
+            btnStart.innerHTML = '[>] MULAI SERVER';
+            return;
+        }
+        logSuccess('Folder backend OK');
+
+        if (!fso.FolderExists(backendDir + '\\node_modules')) {
+            log('Installing dependencies...');
+            try {
+                shell.Run('cmd /c cd /d "' + backendDir + '" && npm install', 0, true);
+                logSuccess('Dependencies OK');
+            } catch(e) {
+                logError('npm install gagal: ' + e.message);
+                btnStart.disabled = false;
+                btnStart.innerHTML = '[>] MULAI SERVER';
+                return;
+            }
+        }
+
+        if (fso.FolderExists(frontendDir) && !fso.FolderExists(frontendDir + '\\dist')) {
+            log('Building frontend...');
+            if (!fso.FolderExists(frontendDir + '\\node_modules')) {
+                shell.Run('cmd /c cd /d "' + frontendDir + '" && npm install', 0, true);
+            }
+            shell.Run('cmd /c cd /d "' + frontendDir + '" && npm run build', 0, true);
+            logSuccess('Frontend OK');
+        }
+
+        if (fso.FileExists(logFile)) { try { fso.DeleteFile(logFile); } catch(e) {} }
+
+        log('Launching server...');
+        try {
+            shell.Run('cmd /c cd /d "' + backendDir + '" && node server.js > "' + logFile + '" 2>&1', 0, false);
+            log('Server launched');
+        } catch(e) {
+            logError('Gagal launch: ' + e.message);
+            btnStart.disabled = false;
+            btnStart.innerHTML = '[>] MULAI SERVER';
+            return;
+        }
+
+        var checkCount = 0;
+        var startCheck = setInterval(function() {
+            checkStatus();
+            checkCount++;
+            if (isRunning) {
+                clearInterval(startCheck);
+                logSuccess('SERVER BERHASIL DIJALANKAN');
+                btnStart.innerHTML = '[OK] BERJALAN';
+                // JALANIN POLLING SETELAH START BERHASIL
+                if (!statusInterval) {
+                    statusInterval = setInterval(checkStatus, 5000);
+                }
+                setTimeout(function() {
+                    try { shell.Run('http://localhost:3001'); log('Browser dibuka'); }
+                    catch(e) { logWarn('Browser auto-open gagal'); }
+                }, 800);
+            } else if (checkCount > 20) {
+                clearInterval(startCheck);
+                logError('Server gagal mulai (40 detik)');
+                btnStart.disabled = false;
+                btnStart.innerHTML = '[>] MULAI SERVER';
+            }
+        }, 2000);
+    }
+
+    // ========== STOP SERVER ==========
+    function stopServer() {
+        if (!isRunning && !isNodeRunning()) { 
+            log('Server tidak berjalan'); 
+            updateUI(false);
+            return; 
+        }
+        
+        log('Menghentikan server...');
+        btnStop.disabled = true;
+        btnStop.innerHTML = '[*] STOPPING...';
+        
+        // HENTIKAN POLLING DULU
+        if (statusInterval) {
+            clearInterval(statusInterval);
+            statusInterval = null;
+            log('Polling dihentikan');
+        }
+        
+        // RESET FLAG: user tidak lagi "start"
+        serverStartedByUser = false;  // <-- PENTING!
+        
+        var killed = false;
+        
+        // Method 1: Kill by port PID
+        var portPid = getPidFromPort(3001);
+        if (portPid) {
+            log('Kill PID dari port: ' + portPid);
+            try {
+                shell.Run('taskkill /f /pid ' + portPid, 0, true);
+                killed = true;
+                logSuccess('Kill PID OK');
+            } catch(e) { logWarn('Kill PID gagal'); }
+        }
+        
+        // Method 2: Kill all node.exe
+        log('Kill all node.exe...');
+        try {
+            shell.Run('taskkill /f /im node.exe', 0, true);
+            killed = true;
+        } catch(e) { logWarn('taskkill gagal'); }
+        
+        // Method 3: WMIC
+        try { shell.Run('wmic process where "name=\'node.exe\'" delete', 0, true); } catch(e) {}
+        
+        // Method 4: PowerShell
+        try {
+            var psCmd = 'powershell -WindowStyle Hidden -Command "Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force"';
+            shell.Run(psCmd, 0, true);
+        } catch(e) {}
+        
+        // Poll sampai beneran mati
+        var pollCount = 0;
+        var pollInterval = setInterval(function() {
+            pollCount++;
+            var stillRunning = isNodeRunning();
+            var portPidCheck = getPidFromPort(3001);
+            
+            if (!stillRunning && !portPidCheck) {
+                clearInterval(pollInterval);
+                isRunning = false;
+                updateUI(false);
+                logSuccess('Server BERHASIL dihentikan');
+                btnStop.innerHTML = '[#] HENTIKAN';
+                failCount = 0;
+                return;
+            }
+            
+            if (pollCount >= 15) {
+                clearInterval(pollInterval);
+                logError('Server MASIH BERJALAN - buka Task Manager manual');
+                btnStop.disabled = false;
+                btnStop.innerHTML = '[#] HENTIKAN';
+            }
+        }, 1000);
+    }
+
+    // ========== CLEAR BROWSER CACHE/COOKIES ==========
+    function clearBrowserCache() {
+        log('Membersihkan kuki & cache browser...');
+        try {
+            // Hapus Temporary Internet Files
+            shell.Run('RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 255', 0, true);
+            logSuccess('Kuki & cache dibersihkan');
+        } catch(e) {
+            logError('Gagal bersihkan kuki: ' + e.message);
+            // Fallback: pakai IE settings
+            try {
+                shell.Run('cmd /c del /q /f /s "%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache\\*" 2>nul', 0, true);
+                shell.Run('cmd /c del /q /f /s "%LOCALAPPDATA%\\Microsoft\\Windows\\Cookies\\*" 2>nul', 0, true);
+                logSuccess('Cache & cookies manual dibersihkan');
+            } catch(e2) {
+                logError('Fallback gagal: ' + e2.message);
+            }
+        }
+    }
+
+    function openBrowser() {
+        log('Membuka browser...');
+        try { shell.Run('http://localhost:3001'); }
+        catch(e) { logError('Gagal buka browser'); }
+    }
+    function showInfo() {
+        var info = 'MIK Dashboard v2.0\n\nManajer Hotspot MikroTik\n\nLogin Default:\n  Username: admin\n  Password: admin123\n\nServer: http://localhost:3001\nDirektori: ' + currentDir;
+        alert(info);
+    }
+
+    // ========== WINDOW CONTROLS ==========
+    function minimizeWindow() { try { window.resizeTo(700, 500); } catch(e) {} }
+    function closeWindow() {
+        if (isRunning) {
+            if (confirm('Server masih berjalan. Hentikan dan tutup?')) {
+                stopServer();
+                setTimeout(function() { window.close(); }, 2000);
+            }
+        } else { window.close(); }
+    }
+
+    // ========== EVENT BINDING ==========
+    btnStart.onclick = function() {
+        serverStartedByUser = true;  // <-- SET FLAG PAS USER KLIK START
+        startServer();
+    };
+    btnStop.onclick = stopServer;
+    btnBrowser.onclick = openBrowser;
+    btnInfo.onclick = showInfo;
+    btnClear.onclick = clearLog;
+    document.getElementById('btnClearCache').onclick = clearBrowserCache;
+    document.getElementById('btnClearLog').onclick = clearLog;
+    document.getElementById('btnCheckNode').onclick = checkNode;
+    document.getElementById('btnCheckPort').onclick = checkPort;
+    document.getElementById('btnCheckBackend').onclick = checkBackend;
+    document.getElementById('btnManualStart').onclick = manualStart;
+    document.getElementById('btnKillNode').onclick = killNode;
+    document.getElementById('btnRefresh').onclick = function() {
+        log('Refresh status...');
+        checkStatus();
+    };
+
+    // ========== INIT ==========
+    log('Project: ' + currentDir);
+    log('Klik MULAI SERVER untuk memulai');
+    // Jangan auto-check di init
+</script>
+</body>
+</html>
